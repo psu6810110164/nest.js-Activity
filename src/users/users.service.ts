@@ -1,71 +1,49 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
-
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserRole } from './entities/user.entity';
+import { CreateUserDto } from './dto/create-user.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-  ) { }
+  ) {}
 
+  // 1.3: สร้าง Admin อัตโนมัติเมื่อเริ่มระบบ
   async onModuleInit() {
-    // Auto-create Admin user for testing
-
-    const admin = await this.findOneByEmail('admin@bookstore.com');
+    const adminEmail = 'admin@bookstore.com';
+    const admin = await this.findOneByEmail(adminEmail);
     if (!admin) {
       console.log('Seeding Admin User...');
       await this.create({
-        email: 'admin@bookstore.com',
+        email: adminEmail,
         password: 'adminpassword',
         role: UserRole.ADMIN
-      } as any);
+      });
     }
   }
 
+  // 1.3: เข้ารหัสผ่านก่อนบันทึก
   async create(createUserDto: CreateUserDto) {
-    // Hash password
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
-
-    const user = this.userRepository.create({
-      ...createUserDto,
-      password: hashedPassword,
+    
+    const user = this.userRepository.create({ 
+      ...createUserDto, 
+      password: hashedPassword 
     });
     return this.userRepository.save(user);
-  }
-
-  async findAll() {
-    return this.userRepository.find();
-  }
-
-  async findOne(id: string) {
-    return this.userRepository.findOneBy({ id });
-  }
-
-  async update(id: string, updateUserDto: UpdateUserDto) {
-    if (updateUserDto.password) {
-      const salt = await bcrypt.genSalt();
-      updateUserDto.password = await bcrypt.hash(
-        updateUserDto.password,
-        salt,
-      );
-    }
-
-    await this.userRepository.update(id, updateUserDto);
-    return this.findOne(id);
-  }
-
-  async remove(id: string) {
-    return this.userRepository.delete(id);
   }
 
   async findOneByEmail(email: string) {
     return this.userRepository.findOneBy({ email });
   }
+
+  // เพิ่ม Method เหล่านี้เพื่อแก้ Error ใน Controller
+  async findAll() { return this.userRepository.find(); }
+  async findOne(id: string) { return this.userRepository.findOneBy({ id }); }
+  async remove(id: string) { return this.userRepository.delete(id); }
 }

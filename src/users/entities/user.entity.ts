@@ -14,7 +14,7 @@ export class User {
   email: string;
 
   @Column()
-  password: string; // เราจะเก็บแบบ Hashed
+  password: string;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
   role: UserRole;
