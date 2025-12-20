@@ -5,9 +5,9 @@ import { UsersController } from './users.controller';
 import { User } from './entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User])],
+  imports: [TypeOrmModule.forFeature([User])], // // เชื่อมต่อ Entity กับ Module
   controllers: [UsersController],
   providers: [UsersService],
-  exports: [UsersService], // [!] สำคัญมาก: ต้องมีบรรทัดนี้เพื่อให้ AuthModule ใช้งานได้
+  exports: [UsersService], // // [เพิ่ม] ต้องส่งออก Service นี้ เพื่อให้ AuthModule เรียกใช้งานได้ [cite: 126]
 })
 export class UsersModule {}
