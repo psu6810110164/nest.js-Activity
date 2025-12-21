@@ -6,6 +6,7 @@ import { BookCategory } from './book-category/entities/book-category.entity';
 import { BookModule } from './book/book.module';
 import { Book } from './book/entities/book.entity';
 import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 
 
 @Module({
@@ -34,6 +35,7 @@ import { UsersModule } from './users/users.module';
     BookCategoryModule,
     BookModule,
     UsersModule,
+    AuthModule,
   ],
 })
 export class AppModule { }
