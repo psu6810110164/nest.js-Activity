@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToMany } from 'typeorm';
+import { Book } from '../../book/entities/book.entity';
 
 export enum UserRole {
   ADMIN = 'ADMIN',
@@ -18,6 +19,9 @@ export class User {
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
   role: UserRole;
+
+  @ManyToMany(() => Book, (book) => book.likedBy)
+  likedBooks: Book[];
 
   @CreateDateColumn()
   createdAt: Date;

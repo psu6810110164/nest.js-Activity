@@ -1,14 +1,18 @@
-import { UserRole } from '../entities/user.entity'; // [เชื่อมโยง 1.2] ดึง Enum มาใช้เพื่อให้ข้อมูล role ถูกต้องตาม Schema
+import { IsEmail, IsString, MinLength, IsEnum, IsOptional } from 'class-validator';
+import { UserRole } from '../entities/user.entity';
 
 export class CreateUserDto {
-  // [อัปเดตจาก 1.2]: กำหนดให้รับ email เป็น String เพื่อใช้เป็นค่า Unique ใน Database
+  // [แก้ไข]: เพิ่ม @IsEmail เพื่อให้ ValidationPipe ยอมรับค่า email
+  @IsEmail({}, { message: 'รูปแบบอีเมลไม่ถูกต้อง' })
   email: string;
 
-  // [อัปเดตจาก 1.2 & 1.3]: รับ Password แบบ Plain text จาก Client 
-  // เพื่อส่งต่อไปให้ Service ทำการ Hash ด้วย bcrypt ในขั้นตอน 1.3
+  // [แก้ไข]: เพิ่ม @IsString และกำหนดความยาวขั้นต่ำ
+  @IsString()
+  @MinLength(6, { message: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' })
   password: string;
 
-  // [อัปเดตจาก 1.2]: กำหนดสิทธิ์ผู้ใช้ โดยใช้ประเภทข้อมูลจาก UserRole Enum
-  // ใส่ ? (Optional) เพื่อให้ระบบใช้ค่า Default (USER) หาก Client ไม่ส่งมา
+  // [แก้ไข]: เพิ่ม @IsEnum เพื่อตรวจสอบว่า role ตรงกับที่กำหนดใน Enum หรือไม่
+  @IsEnum(UserRole, { message: 'ประเภทผู้ใช้งานไม่ถูกต้อง' })
+  @IsOptional() // ใส่เพื่อให้ระบบใช้ค่า Default หาก Client ไม่ส่งมา
   role?: UserRole;
 }

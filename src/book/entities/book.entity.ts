@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { BookCategory } from '../../book-category/entities/book-category.entity';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, JoinTable } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 @Entity()
 export class Book {
@@ -12,16 +12,7 @@ export class Book {
   @Column()
   author: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
-  price: number;
-
-  @Column({ default: 0 })
-  likeCount: number;
-
-  // Relationship: Many Books belong to One Category
-  @ManyToOne(() => BookCategory, (category) => category.id)
-  category: BookCategory;
-
-  @Column({ nullable: true })
-  categoryId: string; // ใช้สำหรับบันทึกด้วย ID โดยตรง
+  @ManyToMany(() => User, (user) => user.likedBooks)
+  @JoinTable()
+  likedBy: User[];
 }
