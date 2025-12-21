@@ -10,37 +10,42 @@ export class UsersService implements OnModuleInit {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-  ) {}
+  ) { }
 
-  // 1.3: สร้าง Admin อัตโนมัติเมื่อเริ่มระบบ
   async onModuleInit() {
-    const adminEmail = 'admin@bookstore.com';
-    const admin = await this.findOneByEmail(adminEmail);
+    // Auto-create Admin user for testing
+    const admin = await this.findOneByEmail('admin@bookstore.com');
     if (!admin) {
       console.log('Seeding Admin User...');
       await this.create({
-        email: adminEmail,
+        email: 'admin@bookstore.com',
         password: 'adminpassword',
         role: UserRole.ADMIN
-      });
+      } as any);
     }
   }
 
-  // 1.3: เข้ารหัสผ่านก่อนบันทึก
+
   async create(createUserDto: CreateUserDto) {
+    // Hashing Password
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
-    
-    const user = this.userRepository.create({ 
-      ...createUserDto, 
-      password: hashedPassword 
+
+    const user = this.userRepository.create({
+      ...createUserDto,
+      password: hashedPassword
     });
     return this.userRepository.save(user);
   }
 
   async findOneByEmail(email: string) {
-    return this.userRepository.findOneBy({ email });
+    return this.userRepository.findOne({
+      where: { email },
+      select: ['id', 'email', 'password', 'role'],
+    });
   }
+
+
 
   // เพิ่ม Method เหล่านี้เพื่อแก้ Error ใน Controller
   async findAll() { return this.userRepository.find(); }

@@ -2,23 +2,45 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt'; // ตัวนี้จะหายแดงหลังจากรัน npm install
+import { UserRole } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
-  async login(email: string, pass: string): Promise<any> {
+  async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.usersService.findOneByEmail(email);
-    // ตรวจสอบรหัสผ่านที่ถูก Hash ไว้
     if (user && (await bcrypt.compare(pass, user.password))) {
-      const payload = { sub: user.id, email: user.email, role: user.role };
-      return {
-        access_token: await this.jwtService.signAsync(payload),
-      };
+      const { password, ...result } = user;
+      return result;
     }
-    throw new UnauthorizedException('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+    return null;
+  }
+
+  // สร้าง Token (Payload คือข้อมูลที่จะฝังใน Token)
+  async login(user: any) {
+    const payload = { username: user.email, sub: user.id, role: user.role };
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
+  }
+
+  async register(email: string, password: string) {
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await this.usersService.create({
+      email,
+      password: hashedPassword,
+      role: UserRole.USER,
+    });
+
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    };
   }
 }

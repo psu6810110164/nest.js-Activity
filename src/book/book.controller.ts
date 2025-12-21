@@ -6,8 +6,9 @@ import { AuthGuard } from '@nestjs/passport'; // นำเข้ายามส�
 import { RolesGuard } from '../auth/roles.guard'; // นำเข้ายามสำหรับตรวจสอบระดับสิทธิ์ (Role) ของผู้ใช้ //
 import { Roles } from '../auth/roles.decorator'; // นำเข้า Decorator สำหรับระบุสิทธิ์ที่ต้องการในแต่ละ API //
 import { UserRole } from '../users/entities/user.entity'; // นำเข้าค่าคงที่ UserRole (ADMIN/USER) มาใช้งาน //
+import { CurrentUser } from '../auth/current-user.decorator';
 
-@Controller('api/book') // กำหนดเส้นทางหลักของ API นี้เป็น /api/book //
+@Controller('book') // กำหนดเส้นทางหลักของ API นี้เป็น /api/book //
 export class BookController { // เริ่มต้นประกาศคลาส BookController //
   constructor(private readonly bookService: BookService) { } // เชื่อมต่อ BookService เข้ามาใช้งานภายในคลาส //
 
@@ -35,11 +36,11 @@ export class BookController { // เริ่มต้นประกาศค�
     return this.bookService.update(id, updateBookDto); // เรียกใช้ Service เพื่อทำการแก้ไขข้อมูล //
   } // ปิดฟังก์ชัน update //
 
-  @UseGuards(AuthGuard('jwt')) // ต้องมีการล็อกอินก่อนถึงจะกด Like ได้ (แต่จะเป็น USER หรือ ADMIN ก็ได้) //
-  @Patch(':id/like') // กำหนด Method PATCH สำหรับการกดเพิ่มคะแนน Like //
-  async likeBook(@Param('id') id: string) { // ฟังก์ชันรับ ID ของหนังสือที่ต้องการกด Like //
-    return this.bookService.incrementLikes(id); // เรียกใช้ Service เพื่อเพิ่มตัวเลข Like ขึ้น 1 (ตามแบบ Phase 3) //
-  } // ปิดฟังก์ชัน likeBook //
+  @UseGuards(AuthGuard('jwt')) // ต้อง Login ก่อนถึงจะ Like ได้ (ทั้ง Admin/User)
+@Patch(':id/like')
+async toggleLike(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.bookService.toggleLike(id, user.userId);
+}
 
   @UseGuards(AuthGuard('jwt'), RolesGuard) // ต้องมีการล็อกอินและตรวจสอบระดับสิทธิ์ก่อนใช้งาน //
   @Roles(UserRole.ADMIN) // บังคับว่าต้องเป็น ADMIN เท่านั้นถึงจะมีสิทธิ์ลบหนังสือออก //
