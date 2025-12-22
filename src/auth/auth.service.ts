@@ -1,16 +1,16 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt'; // ตัวนี้จะหายแดงหลังจากรัน npm install
+import { UserRole } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
-  // ตรวจสอบ Email และ Password
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.usersService.findOneByEmail(email);
     if (user && (await bcrypt.compare(pass, user.password))) {
@@ -25,6 +25,20 @@ export class AuthService {
     const payload = { username: user.email, sub: user.id, role: user.role };
     return {
       access_token: this.jwtService.sign(payload),
+    };
+  }
+
+  async register(email: string, password: string) {
+    const user = await this.usersService.create({
+      email,
+      password,
+      role: UserRole.USER,
+    });
+
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
     };
   }
 }

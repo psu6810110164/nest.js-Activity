@@ -1,29 +1,28 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { UsersModule } from '../users/users.module'; // Import UsersModule
-import { PassportModule } from '@nestjs/passport';
+import { UsersModule } from '../users/users.module'; 
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtStrategy } from './jwt.strategy';
+import { PassportModule } from '@nestjs/passport'; // [เพิ่ม] เพื่อรองรับระบบ Passport
+import { JwtStrategy } from './jwt.strategy'; // [เพิ่ม] นำเข้า Strategy ที่สร้างไว้
 
 @Module({
   imports: [
-    UsersModule,
-    PassportModule,
-    ConfigModule,
-    // ตั้งค่า JWT แบบ Async เพื่อรออ่านค่าจาก .env
+    UsersModule, 
+    PassportModule, // [เพิ่ม] ลงทะเบียนเพื่อให้ Guard ใช้งานได้
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1d' }, // Token หมดอายุใน 1 วัน
-      }),
       inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'), 
+        signOptions: { expiresIn: '1d' },
+      }),
     }),
   ],
-  controllers: [AuthController],
-  providers: [AuthService, JwtStrategy], // อย่าลืมใส่ JwtStrategy ที่เราจะสร้าง
+  // [แก้ไข] เพิ่ม JwtStrategy เข้าไปใน providers เพื่อให้ NestJS ใช้งานได้
+  providers: [AuthService, JwtStrategy], 
+  controllers: [AuthController], 
   exports: [AuthService],
 })
-export class AuthModule { }
+export class AuthModule {}

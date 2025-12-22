@@ -7,9 +7,14 @@ class LoginDto {
   password: string;
 }
 
+class RegisterDto {
+  email: string;
+  password: string;
+}
+
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   @Post('login')
   async login(@Body() body: LoginDto) {
@@ -18,5 +23,10 @@ export class AuthController {
       throw new UnauthorizedException('Invalid credentials');
     }
     return this.authService.login(user);
+  }
+
+  @Post('register')
+  async register(@Body() body: RegisterDto) {
+    return this.authService.register(body.email, body.password);
   }
 }
